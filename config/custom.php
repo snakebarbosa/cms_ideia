@@ -1,0 +1,9 @@
+<?php
+
+
+return [
+
+    'DEFAULT_RESET_PASSWORD' => env('DEFAULT_RESET_PASSWORD'),
+
+    'LAST_DATA_FIELD' => '2037-01-19 03:14:07',
+];
