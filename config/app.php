@@ -184,11 +184,11 @@ return [
 
 		Mews\Purifier\PurifierServiceProvider::class ,
 
-		Creitive\Breadcrumbs\BreadcrumbsServiceProvider::class ,
 		Laratrust\LaratrustServiceProvider::class ,
 		// Laravel\Scout\ScoutServiceProvider::class ,  //  "laravel/scout": "^7.1",
 
 		App\Providers\ViewComposerServiceProvider::class,
+		App\Providers\BreadcrumbsServiceProvider::class,
 
 	],
 
@@ -243,8 +243,8 @@ return [
 		'Datatables'   => Yajra\Datatables\Facades\Datatables::class ,
 		'Image'        => Intervention\Image\Facades\Image::class ,
 		'Purifier'     => Mews\Purifier\Facades\Purifier::class ,
-		'Breadcrumbs'  => Creitive\Breadcrumbs\Facades\Breadcrumbs::class ,
 		'Laratrust'    => Laratrust\LaratrustFacade::class ,
+		'Breadcrumbs'  => App\Facades\Breadcrumbs::class ,
 
 	],
 
