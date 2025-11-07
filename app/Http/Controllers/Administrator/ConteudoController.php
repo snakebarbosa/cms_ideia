@@ -5,6 +5,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Administrator\ConteudoRequest;
 use App\Model\Conteudo;
 
+/**
+ * DEPRECATED: This controller uses old FK-based conteudo structure.
+ * Conteudos are now managed through polymorphic relationships using Helpers::guardarConteudos()
+ * and Helpers::atualizarConteudo() in the respective model controllers (ArtigoController, etc.)
+ * 
+ * TODO: Either remove this controller and route, or refactor for polymorphic relationships
+ */
 class ConteudoController extends Controller {
 	public function __construct() {
 		$this->middleware('auth:api');

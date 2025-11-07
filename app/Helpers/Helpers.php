@@ -16,64 +16,90 @@ use App\Model\Item;
 class Helpers
 {
     
-    public static function guardarConteudos($request, $obj)
+    /**
+     * Save conteudos for any model using polymorphic relationship
+     * 
+     * @param object $request - Request object with tituloPT, textopt, tituloEN, textoen
+     * @param Model $model - Any model that uses HasConteudos trait
+     * @return void
+     */
+    public static function guardarConteudos($request, $model)
     {
+        // Check if model uses HasConteudos trait
+        if (method_exists($model, 'saveConteudos')) {
+            $data = [
+                'tituloPT' => $request->tituloPT ?? '',
+                'textopt' => $request->textopt ?? '',
+                'tituloEN' => $request->tituloEN ?? '',
+                'textoen' => $request->textoen ?? '',
+            ];
+            
+            $model->saveConteudos($data);
+            return;
+        }
 
+        // Fallback to old method for backward compatibility
         $languages = Language::all();
     
         try {
-            foreach ($languages as $language) {
-                if ($language->tag == 'pt') {
-                    $conteudo = new Conteudo();
-                    $conteudo->titulo     = $request->tituloPT;
-                    if ($request->textopt != null && $request->textopt != '') {
-                        //$conteudo->texto  = Purifier::clean($request->textopt);
-                        $conteudo->texto  = $request->textopt;
-                    } else {
-                        $conteudo->texto  = '';
-                    }
-                    $conteudo->idLanguage = $language->id;
-                } else if ($language->tag == 'en') {
-                    $conteudoEN = new Conteudo();
-                    $conteudoEN->titulo     = $request->tituloEN;
-                    if ($request->textoen != null && $request->textoen != '') {
-                        //$conteudoEN->texto  = Purifier::clean($request->textoen);
-                        $conteudoEN->texto  = $request->textoen;
-                    } else {
-                        $conteudoEN->texto  = '';
-                    }
-                    $conteudoEN->idLanguage = $language->id;
-                }
-            }
-            $obj->conteudos()->saveMany([$conteudo, $conteudoEN]);
-        } catch (\Throwable $th) {
+            $conteudos = [];
             
+            foreach ($languages as $language) {
+                $conteudo = new Conteudo();
+                
+                if ($language->tag == 'pt') {
+                    $conteudo->titulo = $request->tituloPT ?? '';
+                    $conteudo->texto = $request->textopt ?? '';
+                } elseif ($language->tag == 'en') {
+                    $conteudo->titulo = $request->tituloEN ?? '';
+                    $conteudo->texto = $request->textoen ?? '';
+                }
+                
+                $conteudo->idLanguage = $language->id;
+                $conteudos[] = $conteudo;
+            }
+            
+            $model->conteudos()->saveMany($conteudos);
+        } catch (\Throwable $th) {
+            \Log::error('Error saving conteudos: ' . $th->getMessage());
         }
-        
     }
 
-    public static function atualizarConteudo($conteudos, $request, $obj)
+    /**
+     * Update conteudos for any model using polymorphic relationship
+     * 
+     * @param Collection $conteudos - Existing conteudos collection
+     * @param object $request - Request object
+     * @param Model $model - The parent model
+     * @return void
+     */
+    public static function atualizarConteudo($conteudos, $request, $model)
     {
+        // Check if model uses HasConteudos trait
+        if (method_exists($model, 'saveConteudos')) {
+            $data = [
+                'tituloPT' => $request->tituloPT ?? '',
+                'textopt' => $request->textopt ?? '',
+                'tituloEN' => $request->tituloEN ?? '',
+                'textoen' => $request->textoen ?? '',
+            ];
+            
+            $model->saveConteudos($data);
+            return;
+        }
+
+        // Fallback to old method
         foreach ($conteudos as $conteudo) {
-			if ($conteudo->languages->tag == "pt") {
-				$conteudo->titulo = $request->tituloPT;
-                if ($request->textopt != null && $request->textopt != '') {
-                    //$conteudo->texto  = Purifier::clean($request->textopt);
-                    $conteudo->texto  = $request->textopt;
-                } else {
-                    $conteudo->texto  = '';
-                }
-			} else {
-				$conteudo->titulo = $request->tituloEN;
-                if ($request->textoen != null && $request->textoen != '') {
-                    //$conteudo->texto  = Purifier::clean($request->textoen);
-                    $conteudo->texto  = $request->textoen;
-                } else {
-                    $conteudo->texto  = '';
-                }
-			}
-		}
-        $obj->conteudos()->saveMany($conteudos);
+            if ($conteudo->languages->tag == "pt") {
+                $conteudo->titulo = $request->tituloPT ?? '';
+                $conteudo->texto = $request->textopt ?? '';
+            } else {
+                $conteudo->titulo = $request->tituloEN ?? '';
+                $conteudo->texto = $request->textoen ?? '';
+            }
+        }
+        
+        $model->conteudos()->saveMany($conteudos);
     }
 
     public static function criarSlug($request, $obj)

@@ -77,8 +77,10 @@ Route::group(['namespace' => 'Administrator'], function () {
 	Route::post('/Administrator/Tag/removerCheck', 'TagController@removerCheck')->name('Tag.removercheck');
 
 	/***Administrator/Artigo****/
+	Route::get('/Administrator/Artigos/json-list', 'ArtigoController@getArtigosJson')->name('Art.getjson');
 	Route::group(['prefix' => '/Administrator/Artigo/'], function () {
 
+		
 		Route::get('delete/{id}', 'ArtigoController@destroy');
 		Route::get('despublicar/{id}', 'ArtigoController@despublicar');
 		Route::get('publicar/{id}', 'ArtigoController@publicar');
@@ -112,6 +114,7 @@ Route::group(['namespace' => 'Administrator'], function () {
 		Route::get('categoria', 'CategoriaController@catDoc')->name('Documentacao.categoria');
 		Route::get('{id}/{type}/editcat', 'CategoriaController@editCat');
 		Route::get('createDoc', 'CategoriaController@createDoc');
+		Route::get('json-list', 'DocumentoController@getDocumentosJson')->name('Doc.getjson');
 		Route::get('delete/{id}', 'DocumentoController@destroy');
 		Route::get('despublicar/{id}', 'DocumentoController@despublicar');
 		Route::get('publicar/{id}', 'DocumentoController@publicar');
@@ -260,11 +263,9 @@ Route::group(['namespace' => 'Administrator'], function () {
 		Route::post('/desactivar', 'UserController@desativarCheck')->name('User.desativarcheck');
 		Route::get('/estado/{id}/{estado}', 'UserController@updateEstado');
 		Route::post('removerCheck', 'UserController@removerCheck')->name('User.removercheck');
-
-		Route::get('/create', 'UserController@create');
-		Route::get('/{id}/edit', 'UserController@edit')->name('User.edit');
-		Route::get('/{id}', 'UserController@show');
 		Route::get('/resetpassworduser/{id}', 'UserController@resetPasswordUser')->name('user.resetpassword');
+		Route::get('/password/{id}', 'UserController@showPasswordForm')->name('User.password.form');
+		Route::post('/password/{id}', 'UserController@updatePassword')->name('User.password.update');
 	});
 });
 

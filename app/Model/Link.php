@@ -10,6 +10,10 @@ class Link extends Model
 {
     use LogsActivity;
 
+    protected $fillable = [
+        'titulo', 'alias', 'url', 'idCategoria', 'ativado', 'order', 'destaque', 'updated_at'
+    ];
+
     protected static $logAttributes = ['*'];
 
     protected static $logName = 'Link';

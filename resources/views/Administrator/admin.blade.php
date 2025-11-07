@@ -39,7 +39,7 @@
     @include("Administrator/partials._navmenu")
     @include("Administrator/partials._menuleft")
 
-    <section class="content">
+    <section class="content" id="app">
      
         <div class="block-header">
 
@@ -55,10 +55,9 @@
 <input type="hidden" name="path" id="path" value="{{URL::to('/')}}" placeholder="">
 <input type="hidden" name="path" id="path2" value="{{URL::to('/')}}/files/images" placeholder="">
 
-  </body>
-
-
   @include("Administrator/partials._footer")
+  
   @yield('script_bottom')
 
+  </body>
   </html>

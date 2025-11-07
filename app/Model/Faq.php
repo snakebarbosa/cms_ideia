@@ -5,10 +5,16 @@ namespace App\Model;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use App\Traits\HasConteudos;
 
 class Faq extends Model
 {
     use LogsActivity;
+    use HasConteudos;
+
+    protected $fillable = [
+        'alias', 'idCategoria', 'idImagem', 'ativado', 'destaque', 'order', 'updated_at'
+    ];
 
     protected static $logAttributes = ['*'];
 
@@ -31,10 +37,6 @@ class Faq extends Model
 
     public function imagems(){
    	    return $this->belongsTo('App\Model\Imagem','idImagem');
-    }
-
-    public function conteudos(){
-   	    return $this->hasMany('App\Model\Conteudo','idFaq');
     }
 
     /**

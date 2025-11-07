@@ -23,40 +23,31 @@ class UserRequest extends FormRequest
      */
     public function rules()
     {
+        switch ($this->method()) {
+            case 'POST':
+                return [
+                    'name' => 'required|string|max:255',
+                    'email' => 'required|string|email|max:255|unique:users',
+                    'password' => 'required|string|min:6|confirmed',
+                    'roles' => 'required',
+                ];
 
+            case 'PUT':
+            case 'PATCH':
+                $userId = $this->route('User');
+                
+                return [
+                    'name' => 'required|string|max:255',
+                    'email' => 'required|string|email|max:255|unique:users,email,' . $userId,
+                    'roles' => 'required',
+                ];
 
-       switch ($this->method()) {
-        case 'POST':
-        {
-
-            return [
-
-                'name'     => 'required|string|max:255',
-                'email'    => 'required|string|email|max:255|unique:users',
-                'password' => 'required|string|min:6|confirmed',
-
-            ];
+            default:
+                return [];
         }
-
-        case 'PUT' : 
-        case 'PATCH' : 
-        {
-
-            return [
-                  
-                'name'     => 'required|string|max:255',
-                'email'    => 'required|string|email|max:255|unique:users',
-                'password' => 'required|string|min:6|confirmed',
-
-            ];
-        }
-                # code...
-        default: break;
     }
 
-}
-
-  /**
+    /**
      * Get the validation messages that apply to the request.
      *
      * @return array
@@ -65,11 +56,19 @@ class UserRequest extends FormRequest
     {
         return [
             'name.required' => 'Nome é obrigatorio',
-            'email.required' => 'E-Mail Address é obrigatorio',
-            'password.required' => 'Password é obrigatorio',
-         
-
+            'name.string' => 'Nome deve ser texto',
+            'name.max' => 'Nome não pode ter mais de 255 caracteres',
+            
+            'email.required' => 'E-Mail é obrigatorio',
+            'email.email' => 'E-Mail deve ser válido',
+            'email.max' => 'E-Mail não pode ter mais de 255 caracteres',
+            'email.unique' => 'Este E-Mail já está registrado',
+            
+            'password.required' => 'Password é obrigatória',
+            'password.min' => 'Password deve ter no mínimo 6 caracteres',
+            'password.confirmed' => 'A confirmação de password não corresponde',
+            
+            'roles.required' => 'Deve selecionar pelo menos uma função',
         ];
     }
-
 }

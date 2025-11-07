@@ -15,7 +15,7 @@
 <script src="{{ URL::to('/') }}/plugins/node-waves/waves.js"></script>
 
 <!-- Custom Js -->
-<script src="{{ URL::to('/') }}/js/material/admin.js"></script>
+<script src="{{ URL::to('/') }}/js/admin.js"></script>
 
 <!-- Demo Js -->
 <script src="{{ URL::to('/') }}/js/material/demo.js"></script>

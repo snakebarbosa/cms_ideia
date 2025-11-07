@@ -36,6 +36,63 @@
             margin-bottom: 0;
             padding: 12px 15px;
         }
+
+        /* Language Tabs Styling */
+        .nav-tabs {
+            border-bottom: 2px solid #00bcd4;
+            margin-bottom: 0;
+        }
+
+        .nav-tabs > li > a {
+            color: #666;
+            font-weight: 500;
+            border-radius: 4px 4px 0 0;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tabs > li > a:hover {
+            background-color: #f5f5f5;
+            border-color: #ddd #ddd transparent;
+            color: #00bcd4;
+        }
+
+        .nav-tabs > li.active > a,
+        .nav-tabs > li.active > a:hover,
+        .nav-tabs > li.active > a:focus {
+            background-color: #00bcd4;
+            color: white;
+            border-color: #00bcd4 #00bcd4 transparent;
+            font-weight: 600;
+        }
+
+        .nav-tabs > li > a .material-icons {
+            font-size: 18px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
+        .tab-content {
+            background-color: #fff;
+            border: none;
+            padding: 20px;
+            border-radius: 0 0 4px 4px;
+            min-height: 400px;
+        }
+
+        .tab-pane {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 @endsection
 
@@ -58,40 +115,62 @@
 
   <div class="content">
     <div class="col-md-8">
-      <fieldset>
-        <legend>Conteúdos EN</legend>
-        <div class="form-group">
-          <div class="form-line">
-          {{ Form::label('tituloEN','Titulo (EN):') }}
-          {{ Form::text('tituloEN', $content['tituloEN'] ?? '', array('class'=>'form-control','required'=>'', 'maxlength'=>'200')) }}
-          </div>
+      <!-- Language Tabs -->
+      <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="active">
+          <a href="#tab-pt" aria-controls="tab-pt" role="tab" data-toggle="tab">
+            <i class="material-icons" style="vertical-align: middle; font-size: 18px;">flag</i>
+            Português
+          </a>
+        </li>
+        <li role="presentation">
+          <a href="#tab-en" aria-controls="tab-en" role="tab" data-toggle="tab">
+            <i class="material-icons" style="vertical-align: middle; font-size: 18px;">flag</i>
+            English
+          </a>
+        </li>
+      </ul>
+
+      <!-- Tab Content -->
+      <div class="tab-content">
+        <!-- Portuguese Tab -->
+        <div role="tabpanel" class="tab-pane active" id="tab-pt">
+          <fieldset>
+            <div class="form-group">
+              <div class="form-line">
+                {{ Form::label('tituloPT','Titulo (PT):') }}
+                {{ Form::text('tituloPT', $content['tituloPT'] ?? '', array('class'=>'form-control','required'=>'', 'maxlength'=>'200')) }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="form-line">
+                {{ Form::label('textopt', "Artigo (Português):") }}
+                {{ Form::textarea('textopt', $content['conteudoPT'] ?? '', array('class'=>'form-control editor','required'=>'', 'rows'=>'10' ,'placeholder'=>'Escreva a notícia aqui (PT)...', 'id'=>'conteudo2')) }}
+              </div>
+            </div>
+          </fieldset>
         </div>
 
-        <div class="form-group">
-          <div class="form-line">
-            {{ Form::label('texto', "Artigo (Inglês):") }}
+        <!-- English Tab -->
+        <div role="tabpanel" class="tab-pane" id="tab-en">
+          <fieldset>
+            <div class="form-group">
+              <div class="form-line">
+                {{ Form::label('tituloEN','Titulo (EN):') }}
+                {{ Form::text('tituloEN', $content['tituloEN'] ?? '', array('class'=>'form-control','required'=>'', 'maxlength'=>'200')) }}
+              </div>
+            </div>
 
-            {{ Form::textarea('textoen', $content['conteudoEN'] ?? '', array('class'=>'form-control editor','required'=>'', 'rows'=>'10', 'placeholder'=>'Escreva a notícia aqui (EN)...', 'id'=>'conteudo1')) }}
-          </div>
+            <div class="form-group">
+              <div class="form-line">
+                {{ Form::label('textoen', "Artigo (Inglês):") }}
+                {{ Form::textarea('textoen', $content['conteudoEN'] ?? '', array('class'=>'form-control editor','required'=>'', 'rows'=>'10', 'placeholder'=>'Escreva a notícia aqui (EN)...', 'id'=>'conteudo1')) }}
+              </div>
+            </div>
+          </fieldset>
         </div>
-      </fieldset>
-
-      <fieldset>
-        <legend>Conteúdos PT</legend>
-        <div class="form-group">
-          <div class="form-line">
-            {{ Form::label('tituloPT','Titulo (PT):') }}
-            {{ Form::text('tituloPT', $content['tituloPT'] ?? '', array('class'=>'form-control','required'=>'', 'maxlength'=>'200')) }}
-          </div>
-        </div>
-
-        <div class="form-group">
-          <div class="form-line">
-            {{ Form::label('texto', "Artigo (Português):") }}
-            {{ Form::textarea('textopt', $content['conteudoPT'] ?? '', array('class'=>'form-control editor','required'=>'', 'rows'=>'10' ,'placeholder'=>'Escreva a notícia aqui (EN)...', 'id'=>'conteudo2')) }}
-          </div>
-        </div>
-      </fieldset> 
+      </div>
     </div> 
 
     <div class="col-md-4">

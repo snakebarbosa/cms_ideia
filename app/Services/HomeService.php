@@ -94,6 +94,7 @@ class HomeService
     public function getSlides()
     {
         return Slide::where('ativado', 1)
+            ->with(['imagems', 'conteudos'])
             ->orderBy('order', 'asc')
             ->get();
     }

@@ -73,7 +73,7 @@
               <tr>
                 <th>Ações</th>
                 <th>Titulo</th>
-                {{-- <th>Imagem</th> --}}
+                <th>Imagem</th>
                 <th>Posiçāo</th>
                 <th>Ordem</th>
                 <th>Data Criação</th>
@@ -104,7 +104,18 @@
                     </div>
                   </td>
                   <td>{{$item->alias}}</td>
-                  {{-- <td>{{ $item->imagems->url }}</td> --}}
+                  <td>
+                    @if($item->idImagem && $item->imagems)
+                      <a href="javascript:void(0);" class="view-slide-image" data-image-url="{{ url('/') }}/files/images/{{ $item->imagems->url }}" data-image-title="{{ $item->imagems->titulo }}">
+                        <img src="{{ url('/') }}/files/images/{{ $item->imagems->url }}" alt="{{ $item->imagems->titulo }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;" class="img-thumbnail">
+                      </a>
+                    @else
+                      <span class="text-muted" style="font-size: 11px;">
+                        <i class="material-icons" style="font-size: 14px; vertical-align: middle;">hide_image</i>
+                        Sem imagem
+                      </span>
+                    @endif
+                  </td>
                   <td>{{ $item->posicao }}</td>
                   <td> {{$item->order}}.º</td>
                   <td>{{$item->created_at}}</td>
@@ -127,6 +138,35 @@
 @endsection
 
 @section('script_bottom')
+<!-- Image Preview Modal -->
+<div class="modal fade" id="imagePreviewModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="imagePreviewTitle">Imagem</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="imagePreviewImg" src="" alt="" style="max-width: 100%; height: auto;">
+      </div>
+    </div>
+  </div>
+</div>
 
+<script>
+  $(document).ready(function() {
+    // Image preview click handler
+    $('.view-slide-image').on('click', function() {
+      var imageUrl = $(this).data('image-url');
+      var imageTitle = $(this).data('image-title');
+      
+      $('#imagePreviewImg').attr('src', imageUrl);
+      $('#imagePreviewTitle').text(imageTitle || 'Imagem do Slide');
+      $('#imagePreviewModal').modal('show');
+    });
+  });
+</script>
 @endsection
 

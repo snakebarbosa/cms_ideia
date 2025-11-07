@@ -6,10 +6,12 @@ use DB;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use App\Traits\HasConteudos;
 
 class Categoria extends Model 
 {
 	use LogsActivity;
+	use HasConteudos;
 
 	protected $fillable = [
 		'categoria_tipo',
@@ -52,9 +54,6 @@ class Categoria extends Model
 		return $this->hasMany('App\Model\Link', 'idCategorias');
 	}
 
-	public function conteudos() {
-		return $this->hasMany('App\Model\Conteudo', 'idCategoria');
-	}
 	/**
 	 *
 	 */

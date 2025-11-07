@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Administrator;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Administrator\CheckRequest;
+use App\Http\Requests\Administrator\UpdatePasswordRequest;
+use App\Http\Requests\Administrator\UserRequest;
 use App\Services\UserService;
 use Auth;
 use Hash;
@@ -24,12 +26,17 @@ class UserController extends Controller
 	 */
 	public function index()
 	{
-		$users = $this->userService->getAllUsers();
-		$can = Auth::user()->hasRole('superadministrator');
+		try {
+			$users = $this->userService->getAllUsers();
+			$can = Auth::user()->hasRole('superadministrator');
 
-		return view('Administrator.User.user')
-			->withData($users)
-			->withCan($can);
+			return view('Administrator.User.user')
+				->withData($users)
+				->withCan($can);
+		} catch (\Exception $e) {
+			Session::flash('danger', 'Erro ao carregar utilizadores: ' . $e->getMessage());
+			return redirect()->back();
+		}
 	}
 
 	/**
@@ -37,43 +44,42 @@ class UserController extends Controller
 	 */
 	public function create()
 	{
-		$can = Auth::user()->hasRole('superadministrator');
-		$roles = $this->userService->getAllRoles();
+		try {
+			$can = Auth::user()->hasRole('superadministrator');
+			$roles = $this->userService->getAllRoles();
 
-		return view('Administrator.User.user_form', compact('roles', 'can'));
+			return view('Administrator.User.user_form', compact('roles', 'can'));
+		} catch (\Exception $e) {
+			Session::flash('danger', 'Erro ao carregar formulário: ' . $e->getMessage());
+			return redirect()->route('User.index');
+		}
 	}
 
 	/**
 	 * Store a newly created resource in storage.
 	 */
-	public function store(Request $request)
+	public function store(UserRequest $request)
 	{
-		$this->validate($request, [
-			'name' => 'required|string|max:255',
-			'email' => 'required|string|email|max:255|unique:users',
-			'password' => 'required|string|min:6|confirmed',
-			'roles' => 'required',
-		]);
+		try {
+			$password = !empty($request->password) 
+				? trim($request->password) 
+				: $this->userService->generateRandomPassword();
 
-		$password = !empty($request->password) 
-			? trim($request->password) 
-			: $this->userService->generateRandomPassword();
+			$userData = [
+				'name' => $request->name,
+				'email' => $request->email,
+				'password' => $password,
+				'roles' => $request->roles,
+			];
 
-		$userData = [
-			'name' => $request->name,
-			'email' => $request->email,
-			'password' => $password,
-			'roles' => $request->roles,
-		];
+			$user = $this->userService->createUser($userData);
 
-		$user = $this->userService->createUser($userData);
-
-		if ($user) {
+			Session::flash('success', 'Utilizador criado com sucesso!');
 			return redirect()->route('User.index', $user->id);
+		} catch (\Exception $e) {
+			Session::flash('danger', 'Erro ao criar utilizador: ' . $e->getMessage());
+			return redirect()->route('User.create')->withInput();
 		}
-
-		Session::flash('danger', 'Sorry a problem occurred while creating this user.');
-		return redirect()->route('User.create');
 	}
 
 	/**
@@ -81,11 +87,71 @@ class UserController extends Controller
 	 */
 	public function show($id)
 	{
-		$data = $this->userService->getUserById($id);
-		$atividades = [];
-		$can = Auth::user()->hasRole('superadministrator');
+		try {
+			$data = $this->userService->getUserById($id);
+			
+			if (!$data) {
+				Session::flash('danger', 'Utilizador não encontrado.');
+				return redirect()->route('User.index');
+			}
+			
+			// Get user activity logs
+			try {
+				$atividades = \Spatie\Activitylog\Models\Activity::where('causer_id', $id)
+					->where('causer_type', 'App\User')
+					->orderBy('created_at', 'desc')
+					->get();
+			} catch (\Exception $e) {
+				\Log::warning("Activity logs not available: " . $e->getMessage());
+				$atividades = collect([]);
+			}
+			
+			// Get counts of artigos and documentos created by the user
+			try {
+				$artigosCount = \App\Model\Artigo::where('idUser', $id)->count();
+			} catch (\Exception $e) {
+				\Log::warning("Could not count artigos: " . $e->getMessage());
+				$artigosCount = 0;
+			}
+			
+			try {
+				$documentosCount = \App\Model\Documento::where('idUser', $id)->count();
+			} catch (\Exception $e) {
+				\Log::warning("Could not count documentos: " . $e->getMessage());
+				$documentosCount = 0;
+			}
+			
+			// Get monthly statistics for the last 12 months
+			$monthlyStats = [];
+			try {
+				for ($i = 11; $i >= 0; $i--) {
+					$month = \Carbon\Carbon::now()->subMonths($i);
+					$monthlyStats[] = [
+						'month' => $month->format('M Y'),
+						'artigos' => \App\Model\Artigo::where('idUser', $id)
+							->whereYear('created_at', $month->year)
+							->whereMonth('created_at', $month->month)
+							->count(),
+						'documentos' => \App\Model\Documento::where('idUser', $id)
+							->whereYear('created_at', $month->year)
+							->whereMonth('created_at', $month->month)
+							->count(),
+					];
+				}
+			} catch (\Exception $e) {
+				\Log::warning("Could not generate monthly stats: " . $e->getMessage());
+				$monthlyStats = [];
+			}
+			
+			$can = Auth::user()->hasRole('superadministrator');
 
-		return view('Administrator.User.info', compact('data', 'atividades', 'can'));
+			return view('Administrator.User.info', compact('data', 'atividades', 'can', 'artigosCount', 'documentosCount', 'monthlyStats'));
+		} catch (\Exception $e) {
+			\Log::error("Error in User show method: " . $e->getMessage());
+			\Log::error($e->getTraceAsString());
+			Session::flash('danger', 'Erro ao carregar utilizador: ' . $e->getMessage());
+			return redirect()->route('User.index');
+		}
 	}
 
 	/**
@@ -93,59 +159,52 @@ class UserController extends Controller
 	 */
 	public function edit($id)
 	{
-		$can = Auth::user()->hasRole('superadministrator');
-		$user = $this->userService->getUserById($id);
-		$roleUser = $this->userService->getUserRoles($id);
-		$roles = $this->userService->getAllRoles();
+		try {
+			$can = Auth::user()->hasRole('superadministrator');
+			$user = $this->userService->getUserById($id);
+			
+			if (!$user) {
+				Session::flash('danger', 'Utilizador não encontrado.');
+				return redirect()->route('User.index');
+			}
+			
+			$roleUser = $this->userService->getUserRoles($id);
+			$roles = $this->userService->getAllRoles();
 
-		return view('Administrator.User.user_form', compact('roles', 'user', 'can', 'roleUser'));
+			return view('Administrator.User.user_form', compact('roles', 'user', 'can', 'roleUser'));
+		} catch (\Exception $e) {
+			Session::flash('danger', 'Erro ao carregar formulário: ' . $e->getMessage());
+			return redirect()->route('User.index');
+		}
 	}
 
 	/**
 	 * Update the specified resource in storage.
 	 */
-	public function update(Request $request, $id)
+	public function update(UserRequest $request, $id)
 	{
-		$user = $this->userService->getUserById($id);
+		try {
+			$user = $this->userService->getUserById($id);
 
-		if (!$user) {
-			Session::flash('danger', 'User not found.');
-			return redirect()->route('User.index');
-		}
+			if (!$user) {
+				Session::flash('danger', 'Utilizador não encontrado.');
+				return redirect()->route('User.index');
+			}
 
-		$this->validate($request, [
-			'name' => 'required|string|max:255',
-			'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-			'password_atual' => 'required|string|min:6',
-			'password' => 'required|string|min:6',
-			'roles' => 'required',
-		]);
+			$userData = [
+				'name' => $request->name,
+				'email' => $request->email,
+				'roles' => $request->roles,
+			];
 
-		// Verify current password
-		if (!$this->userService->verifyPassword($id, $request->password_atual)) {
-			Session::flash('danger', 'Password errado.');
-			return redirect()->route('User.edit', $user->id);
-		}
+			$updatedUser = $this->userService->updateUser($id, $userData);
 
-		$password = !empty($request->password) 
-			? trim($request->password) 
-			: $this->userService->generateRandomPassword();
-
-		$userData = [
-			'name' => $request->name,
-			'email' => $request->email,
-			'password' => $password,
-			'roles' => $request->roles,
-		];
-
-		$updatedUser = $this->userService->updateUser($id, $userData);
-
-		if ($updatedUser) {
+			Session::flash('success', 'Utilizador atualizado com sucesso!');
 			return redirect()->route('User.index', $updatedUser->id);
+		} catch (\Exception $e) {
+			Session::flash('danger', 'Erro ao atualizar utilizador: ' . $e->getMessage());
+			return redirect()->route('User.edit', $id)->withInput();
 		}
-
-		Session::flash('danger', 'Sorry a problem occurred while updating this user.');
-		return redirect()->route('User.edit', $user->id);
 	}
 
 	/**
@@ -153,8 +212,14 @@ class UserController extends Controller
 	 */
 	public function ativarCheck(CheckRequest $ids)
 	{
-		$this->userService->bulkUpdateStatus($ids->check, 1);
-		return redirect()->route('User.index');
+		try {
+			$this->userService->bulkUpdateStatus($ids->check, 1);
+			Session::flash('success', 'Utilizadores ativados com sucesso!');
+			return redirect()->route('User.index');
+		} catch (\Exception $e) {
+			Session::flash('danger', 'Erro ao ativar utilizadores: ' . $e->getMessage());
+			return redirect()->route('User.index');
+		}
 	}
 
 	/**
@@ -162,8 +227,14 @@ class UserController extends Controller
 	 */
 	public function desativarCheck(CheckRequest $ids)
 	{
-		$this->userService->bulkUpdateStatus($ids->check, 0);
-		return redirect()->route('User.index');
+		try {
+			$this->userService->bulkUpdateStatus($ids->check, 0);
+			Session::flash('success', 'Utilizadores desativados com sucesso!');
+			return redirect()->route('User.index');
+		} catch (\Exception $e) {
+			Session::flash('danger', 'Erro ao desativar utilizadores: ' . $e->getMessage());
+			return redirect()->route('User.index');
+		}
 	}
 
 	/**
@@ -171,14 +242,15 @@ class UserController extends Controller
 	 */
 	public function updateEstado($id, $estado)
 	{
-		$success = $this->userService->updateUserStatus($id, $estado);
-
-		if ($success) {
-			$state = $estado == 1 ? 'Activou' : 'Desactivou';
-			Session::flash('success', 'Estado do Utilizador foi alterado com sucesso!');
+		try {
+			$this->userService->updateUserStatus($id, $estado);
+			$state = $estado == 1 ? 'ativado' : 'desativado';
+			Session::flash('success', "Utilizador {$state} com sucesso!");
+			return redirect()->route('User.index', $id);
+		} catch (\Exception $e) {
+			Session::flash('danger', 'Erro ao alterar estado: ' . $e->getMessage());
+			return redirect()->route('User.index');
 		}
-
-		return redirect()->route('User.index', $id);
 	}
 
 	/**
@@ -186,8 +258,14 @@ class UserController extends Controller
 	 */
 	public function removerCheck(CheckRequest $ids)
 	{
-		$this->userService->bulkDeleteUsers($ids->check);
-		return redirect()->route('User.index');
+		try {
+			$this->userService->bulkDeleteUsers($ids->check);
+			Session::flash('success', 'Utilizadores removidos com sucesso!');
+			return redirect()->route('User.index');
+		} catch (\Exception $e) {
+			Session::flash('danger', 'Erro ao remover utilizadores: ' . $e->getMessage());
+			return redirect()->route('User.index');
+		}
 	}
 
 	/**
@@ -195,13 +273,14 @@ class UserController extends Controller
 	 */
 	public function destroy($id)
 	{
-		$success = $this->userService->deleteUser($id);
-
-		if ($success) {
-			Session::flash('success', 'User removido!');
+		try {
+			$this->userService->deleteUser($id);
+			Session::flash('success', 'Utilizador removido com sucesso!');
+			return redirect()->route('User.index');
+		} catch (\Exception $e) {
+			Session::flash('danger', 'Erro ao remover utilizador: ' . $e->getMessage());
+			return redirect()->route('User.index');
 		}
-
-		return redirect()->route('User.index');
 	}
 
 	/**
@@ -209,9 +288,90 @@ class UserController extends Controller
 	 */
 	public function resetPasswordUser($id)
 	{
-		$this->userService->resetPassword($id);
-		Session::flash('success', 'Senha resetado com sucesso! Nova senha "password".');
+		try {
+			$this->userService->resetPassword($id);
+			Session::flash('success', 'Senha resetada com sucesso! Nova senha "password".');
+			return redirect()->route('User.index');
+		} catch (\Exception $e) {
+			Session::flash('danger', 'Erro ao resetar senha: ' . $e->getMessage());
+			return redirect()->route('User.index');
+		}
+	}
 
-		return redirect()->route('User.index');
+	/**
+	 * Show the password change form
+	 */
+	public function showPasswordForm($id)
+	{
+		try {
+			$user = $this->userService->getUserById($id);
+			
+			if (!$user) {
+				Session::flash('danger', 'Utilizador não encontrado.');
+				return redirect()->route('User.index');
+			}
+
+			// Check authorization: must be super admin or the user himself
+			$currentUser = Auth::user();
+			$isSuperAdmin = $currentUser->hasRole('superadministrator');
+			$isOwnProfile = $currentUser->id == $id;
+
+			if (!$isSuperAdmin && !$isOwnProfile) {
+				Session::flash('danger', 'Não tem permissão para alterar a password deste utilizador.');
+				return redirect()->route('User.index');
+			}
+
+			return view('Administrator.User.password_form', compact('user', 'isSuperAdmin'));
+		} catch (\Exception $e) {
+			Session::flash('danger', 'Erro ao carregar formulário: ' . $e->getMessage());
+			return redirect()->route('User.index');
+		}
+	}
+
+	/**
+	 * Update user password
+	 */
+	public function updatePassword(UpdatePasswordRequest $request, $id)
+	{
+		try {
+			$user = $this->userService->getUserById($id);
+			
+			if (!$user) {
+				Session::flash('danger', 'Utilizador não encontrado.');
+				return redirect()->route('User.index');
+			}
+
+			// Check authorization: must be super admin or the user himself
+			$currentUser = Auth::user();
+			$isSuperAdmin = $currentUser->hasRole('superadministrator');
+			$isOwnProfile = $currentUser->id == $id;
+
+			if (!$isSuperAdmin && !$isOwnProfile) {
+				Session::flash('danger', 'Não tem permissão para alterar a password deste utilizador.');
+				return redirect()->route('User.index');
+			}
+
+			$this->userService->updatePassword(
+				$id, 
+				$request->current_password, 
+				$request->new_password
+			);
+
+			Session::flash('success', 'Password atualizada com sucesso!');
+			
+			// Redirect to user index or profile depending on who made the change
+			if ($isOwnProfile && !$isSuperAdmin) {
+				return redirect()->route('User.show', $id);
+			}
+			
+			return redirect()->route('User.index');
+		} catch (\Exception $e) {
+			if (strpos($e->getMessage(), 'incorrect') !== false) {
+				Session::flash('danger', 'Password atual está incorreta.');
+			} else {
+				Session::flash('danger', 'Erro ao atualizar password: ' . $e->getMessage());
+			}
+			return redirect()->route('User.password.form', $id)->withInput();
+		}
 	}
 }

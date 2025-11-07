@@ -4,7 +4,7 @@
             <i class="material-icons">search</i>
         </div>
           {!! Form::open(['route' => 'Art.search','class' => 'steps']) !!}
-            <input type="text" name="search" minlength="3" required="required" placeholder="Pesquisar por Titulo do Artigo..."/>
+            <input type="text" name="search" minlength="3" required="required" placeholder="Pesquisar por Artigos e Documentos..."/>
         {!! Form::close() !!}
         <div class="close-search">
             <i class="material-icons">close</i>

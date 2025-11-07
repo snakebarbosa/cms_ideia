@@ -27,17 +27,21 @@
 	            <div class="aac-list-menu">
 	              <h4 class="aac-block-title" style="margin-left:0;text-align:left;">Artigos</h4>
 	              <ul>
+	              @php
+					$lan = Session::get('lan') ?? 0;
+				  @endphp
 	              @foreach($artigos as $item)
 	                    <li>
-	                      <a href="{{ URL::to('/') }}/artigo/{{ $item['id'] }}" title="{{ $item['alias'] }}" style="width:87%;">
+	                      <a href="{{ URL::to('/') }}/artigo/{{ $item['id'] }}" title="{{ $item['alias'] ?? '' }}" style="width:87%;">
 
 	                        <p style="margin-left:0;">
-	                          <span class="aac-lm-content ellipsed">{{ $item['conteudos'][Session::get('lan')]['titulo'] }}</span>
+	                          <span class="aac-lm-content ellipsed">{{ $item['conteudos'][$lan]['titulo'] ?? $item['alias'] }}</span>
 	                          <span class="aac-lm-date">{{substr($item['created_at'],0,10) }}</span>
 
 	                        </p>
 	                      </a>
 
+	                      @if(isset($item['tags']) && count($item['tags']) > 0)
 	                      <div class="aac-lm-date tag_list" style="text-transform:Capitalize;font-weight:bold;">
 								<span class="tag_title">Tags: </span>
 								@foreach($item['tags'] as $tag)
@@ -46,6 +50,7 @@
 									</a>
 								@endforeach
 						 </div>
+						 @endif
 
 	                    </li>
 	                @endforeach   {{-- {{ $item['id'] }} {{ $item['descricao'] }}--}}

@@ -61,51 +61,26 @@
                             </div>
                         </div>
 
-                        @if(isset($user))
+                        @if(!isset($user))
                             <div class="col-sm-6">
                                 <div class="form-group form-float">
                                     <div class="form-line">
-                                        <input id="password_atual" type="password" class="form-control" name="password_atual" @if(!isset($user))required @endif>
+                                        <input id="password" type="password" class="form-control" name="password" required>
                                             @if ($errors->has('password'))
                                             <span class="help-block">
                                                 <strong>{{ $errors->first('password') }}</strong>
                                             </span>
                                         @endif
-                                        <label class="form-label @if(!isset($user))required @endif">Password Atual</label>
+                                        <label class="form-label required">Password</label>
                                     </div>
                                 </div>
                             </div>
-                        @endif
 
-                        
-                        <div class="col-sm-6">
-                            <div class="form-group form-float">
-                                <div class="form-line">
-                                    <input id="password" type="password" class="form-control" name="password" @if(!isset($user))required @endif>
-                                        @if ($errors->has('password'))
-                                        <span class="help-block">
-                                            <strong>{{ $errors->first('password') }}</strong>
-                                        </span>
-                                    @endif
-                                    <label class="form-label @if(!isset($user))required @endif">
-                                        @if(isset($user))
-                                            Nova Password
-                                        @else
-                                            Password
-                                        @endif
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    
-
-                        @if(!isset($user))
                             <div class="col-sm-6">
                                 <div class="form-group form-float">
                                     <div class="form-line">
-                                        <input id="password-confirm" type="password" class="form-control" name="password_confirmation" @if(!isset($user))required @endif>
-
-                                        <label class="form-label @if(!isset($user))required @endif">Confirmar Password</label>
+                                        <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required>
+                                        <label class="form-label required">Confirmar Password</label>
                                     </div>
                                 </div>
                             </div>
@@ -138,6 +113,9 @@
                                     <button type="submit" class="btn btn-primary">
                                         Actualizar
                                     </button>
+                                    <a href="{{ route('User.password.form', $user->id) }}" class="btn btn-warning">
+                                        <i class="material-icons">lock</i> Alterar Password
+                                    </a>
                                 </div>
                             </div>
                         @endif

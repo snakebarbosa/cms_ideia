@@ -15,7 +15,7 @@
                     <div class="btn-group user-helper-dropdown">
                         <i class="material-icons" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">keyboard_arrow_down</i>
                         <ul class="dropdown-menu pull-right">
-                            <li><a href="{{ URL::to('/') }}/Administrator/user/{{ Auth::user()->id }}/edit"><i class="material-icons">person</i>Meu Perfil</a></li>
+                            <li><a href="{{ route('User.edit', Auth::user()->id) }}"><i class="material-icons">person</i>Meu Perfil</a></li>
                             <li role="seperator" class="divider"></li>
 
                             <li><a href="{{ route('logout') }}"  onclick="event.preventDefault();

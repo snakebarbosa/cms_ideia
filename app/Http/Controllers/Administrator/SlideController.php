@@ -258,22 +258,17 @@ class SlideController extends Controller {
 					unset($languages['titulo']);
 					unset($languages['created_at']);
 
-					unset($imagems['ativado']);
-					unset($imagems['updated_at']);
-					unset($imagems['titulo']);
-					unset($imagems['created_at']);
-					unset($imagems['id']);
-					unset($imagems['idCategoria']);
+				unset($imagems['ativado']);
+				unset($imagems['updated_at']);
+				unset($imagems['titulo']);
+				unset($imagems['created_at']);
+				unset($imagems['id']);
+				unset($imagems['idCategoria']);
 
-					unset($conteudo['created_at']);
-					unset($conteudo['idArtigo']);
-					unset($conteudo['updated_at']);
-					unset($conteudo['idDocumento']);
-					unset($conteudo['idFaq']);
-					unset($conteudo['idSlide']);
-					unset($conteudo['idItem']);
-					unset($conteudo['ativado']);
-				}
+				unset($conteudo['created_at']);
+				unset($conteudo['updated_at']);
+				unset($conteudo['ativado']);
+			}
 				unset($slide['destaque']);
 				unset($slide['created_at']);
 				unset($slide['updated_at']);

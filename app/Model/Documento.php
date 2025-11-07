@@ -6,11 +6,18 @@ use Illuminate\Database\Eloquent\Model;
 // use Laravel\Scout\Searchable;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use App\Traits\HasConteudos;
 
 class Documento extends Model {
 
 	// use Searchable;
 	use LogsActivity;
+	use HasConteudos;
+
+	protected $fillable = [
+		'destaque', 'ativado', 'nome', 'alias', 'descricao', 'url', 'idCategoria', 
+		'idTipo', 'idUser', 'publicar', 'despublicar', 'data_criacao', 'updated_at', 'slug'
+	];
 
 	protected static $logAttributes = ['*'];
 
@@ -41,10 +48,6 @@ class Documento extends Model {
 
 	public function user() {
 		return $this->belongsTo('App\User', 'idUser');
-	}
-
-	public function conteudos() {
-		return $this->hasMany('App\Model\Conteudo', 'idDocumento');
 	}
 
 	/**

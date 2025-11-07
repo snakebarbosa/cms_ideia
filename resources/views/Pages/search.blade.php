@@ -45,22 +45,24 @@
 
 				<!-- Tab panes -->
 				<div class="tab-content">
-					@if($artigos->count() > 0)
+					@if(isset($artigos) && $artigos->count() > 0)
 					<div role="tabpanel" class="tab-pane active" id="artigos">
 						<div class="aac-list-menu">
 							<ul>
 							@foreach($artigos as $item) 
 								<li>
-									<a href="{{ URL::to('/') }}/artigo/{{ $item['id'] }}" title="{{ $item['alias'] }}" style="width:100%;">
+									<a href="{{ URL::to('/') }}/artigo/{{ $item['id'] }}" title="{{ $item['alias'] ?? '' }}" style="width:100%;">
 										<p>
 											<span class="aac-lm-content ellipsed">{{ $item['alias'] }}</span>
 											<span class="aac-lm-date">{{substr($item['created_at'],0,10) }}</span>
+											@if(isset($item['tags']) && count($item['tags']) > 0)
 											<span class="aac-lm-date" style="text-transform:Capitalize;font-weight:bold;">
 												<span style="color:#23527c;">Tags: </span>
 												@foreach($item['tags'] as $tag)
 													{{ $tag['name'].', '}}
 												@endforeach
 											</span>
+											@endif
 										</p>
 									</a>
 								</li>
@@ -70,23 +72,25 @@
 					</div>
 					@endif
 
-					@if($documentos->count() > 0)
-					<div role="tabpanel" class="tab-pane {{ $artigos->count() == 0 ? 'active' : '' }}" id="documentos">
+					@if(isset($documentos) && $documentos->count() > 0)
+					<div role="tabpanel" class="tab-pane {{ (!isset($artigos) || $artigos->count() == 0) ? 'active' : '' }}" id="documentos">
 						<div class="aac-list-menu">
 							<ul>
 							@foreach($documentos as $item) 
 								<li>
-									<a href="{{ URL::to('/') }}/documento/{{ $item['id'] }}" title="{{ $item['nome'] }}" style="width:87%;">
+									<a href="{{ URL::to('/') }}/documento/{{ $item['id'] }}" title="{{ $item['nome'] ?? '' }}" style="width:87%;">
 										<img src="{{ URL::to('/') }}/files/images/pdf.png"/>
 										<p>
 											<span class="aac-lm-content ellipsed">{{ $item['nome'] }}</span>
 											<span class="aac-lm-date">{{substr($item['created_at'],0,10) }}</span>
+											@if(isset($item['tags']) && count($item['tags']) > 0)
 											<span class="aac-lm-date" style="text-transform:Capitalize;font-weight:bold;">
 												<span style="color:#23527c;">Tags: </span>
 												@foreach($item['tags'] as $tag)
 													{{ $tag['name'].', '}}
 												@endforeach
 											</span>
+											@endif
 										</p>
 									</a>
 									<a class="btn btn-default fontBlue icon_download" target="__blank" href="{{ URL::to('/') }}/documento/opendoc/{{ $item['url'] }}" role="button"> <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span></a>
@@ -97,22 +101,24 @@
 					</div>
 					@endif
 
-					@if($faqs->count() > 0)
-					<div role="tabpanel" class="tab-pane {{ ($artigos->count() == 0 && $documentos->count() == 0) ? 'active' : '' }}" id="faqs">
+					@if(isset($faqs) && $faqs->count() > 0)
+					<div role="tabpanel" class="tab-pane {{ ((!isset($artigos) || $artigos->count() == 0) && (!isset($documentos) || $documentos->count() == 0)) ? 'active' : '' }}" id="faqs">
 						<div class="aac-list-menu">
 							<ul>
 							@foreach($faqs as $item) 
 								<li>
-									<a href="{{ URL::to('/') }}/faq/{{ $item['id'] }}" title="{{ $item['alias'] }}" style="width:100%;">
+									<a href="{{ URL::to('/') }}/faq/{{ $item['id'] }}" title="{{ $item['alias'] ?? '' }}" style="width:100%;">
 										<p>
 											<span class="aac-lm-content ellipsed">{{ $item['alias'] }}</span>
 											<span class="aac-lm-date">{{substr($item['created_at'],0,10) }}</span>
+											@if(isset($item['tags']) && count($item['tags']) > 0)
 											<span class="aac-lm-date" style="text-transform:Capitalize;font-weight:bold;">
 												<span style="color:#23527c;">Tags: </span>
 												@foreach($item['tags'] as $tag)
 													{{ $tag['name'].', '}}
 												@endforeach
 											</span>
+											@endif
 										</p>
 									</a>
 								</li>

@@ -72,11 +72,14 @@
 		</div> --}}
 
 		<div class="col-sm-6 col-md-6 col-lg-6 tab_container" style="height: 400px; padding-left: 36px;">
+			@php
+				$lan = Session::get('lan') ?? 0;
+			@endphp
 			@forelse($allNews as $item)
 				<div class="media">
 					<div class="media-body">
 						<small class="data_doc">{{substr($item['data_criacao'],0,10) }}</small>
-						<a href="{{ URL::to('/') }}/artigo/{{ $item['id'] }}"><h4 class="media-heading" style="color:#303030!important;">{{ $item['conteudos'][Session::get('lan')]['titulo'] }}</h4></a>
+						<a href="{{ URL::to('/') }}/artigo/{{ $item['id'] }}"><h4 class="media-heading" style="color:#303030!important;">{{ $item['conteudos'][$lan]['titulo'] ?? $item['alias'] }}</h4></a>
 						
 					</div>
 				</div>

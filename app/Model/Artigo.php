@@ -5,6 +5,7 @@ namespace App\Model;
 use App\Model\Documento;
 use App\Model\Faq;
 use App\Model\Categoria;
+use App\Traits\HasConteudos;
 // use Laravel\Scout\Searchable;
 
 use Illuminate\Database\Eloquent\Model;
@@ -14,9 +15,12 @@ use Spatie\Activitylog\LogOptions;
 class Artigo extends Model {
 
 	// use Searchable;
-	use LogsActivity;
+	use LogsActivity, HasConteudos;
 
-
+	protected $fillable = [
+		'destaque', 'ativado', 'alias', 'idCategoria', 'idImagem', 'idUser', 
+		'publicar', 'despublicar', 'data_criacao', 'updated_at', 'slug'
+	];
 
 	protected static $logAttributes = ['user.name', '*'];
 
@@ -49,10 +53,6 @@ class Artigo extends Model {
 
 	public function user() {
 		return $this->belongsTo('App\User', 'idUser');
-	}
-
-	public function conteudos() {
-		return $this->hasMany('App\Model\Conteudo', 'idArtigo');
 	}
 
 	/**

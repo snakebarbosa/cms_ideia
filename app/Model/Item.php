@@ -5,10 +5,12 @@ use DB;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use App\Traits\HasConteudos;
 
 class Item extends Model 
 {
 	use LogsActivity;
+	use HasConteudos;
 
 	protected static $logAttributes = ['*'];
 
@@ -23,10 +25,6 @@ class Item extends Model
 
 	public function tipos() {
 		return $this->belongsTo('App\Model\Tipo', 'idTipo');
-	}
-
-	public function conteudos() {
-		return $this->hasMany('App\Model\Conteudo', 'idItem');
 	}
 
 	public function imagems() {

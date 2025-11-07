@@ -339,4 +339,39 @@ class DocumentoController extends Controller {
             return redirect()->route('Documento.index');
         }
     }
+
+    /**
+     * Get all documentos as JSON for dropdowns
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getDocumentosJson()
+    {
+        try {
+            $documentos = Documento::where('ativado', 1)
+                ->with('conteudos:id,contentable_type,contentable_id,titulo,idLanguage')
+                ->orderBy('nome', 'asc')
+                ->select('id', 'nome')
+                ->get()
+                ->map(function($documento) {
+                    $conteudoPT = $documento->conteudos->where('idLanguage', 2)->first();
+                    $conteudoEN = $documento->conteudos->where('idLanguage', 1)->first();
+                    
+                    $tituloPT = $conteudoPT ? $conteudoPT->titulo : $documento->nome;
+                    $tituloEN = $conteudoEN ? $conteudoEN->titulo : $documento->nome;
+                    
+                    return [
+                        'id' => $documento->id,
+                        'nome' => $documento->nome,
+                        'titulo_pt' => $tituloPT,
+                        'titulo_en' => $tituloEN,
+                        'url' => '/documento/' . $documento->id
+                    ];
+                });
+            
+            return response()->json($documentos);
+        } catch (\Exception $e) {
+            return response()->json([], 500);
+        }
+    }
 }

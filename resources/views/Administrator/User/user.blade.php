@@ -97,8 +97,11 @@
                   <i class="material-icons">done</i>
                 </a>
 
+                <a type="button" class="btn botaoListar bg-purple btn-circle waves-effect waves-circle waves-float" href="{{ route('User.password.form', $item->id) }}"  data-toggle="tooltip" data-placement="top" title="Alterar Password">
+                  <i class="material-icons">lock</i>
+                </a>
 
-                <a type="button" class="btn botaoListar bg-lime btn-circle waves-effect waves-circle waves-float" href="{{ URL::to('/') }}/Administrator/user/{{$item->id}}/edit"  data-toggle="tooltip" data-placement="top" title="Editar">
+                <a type="button" class="btn botaoListar bg-lime btn-circle waves-effect waves-circle waves-float" href="{{ route('User.edit', $item->id) }}"  data-toggle="tooltip" data-placement="top" title="Editar">
                   <i class="material-icons">edit</i>
                 </a>
               @endif

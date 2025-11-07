@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Administrator\ArtigoRequest;
 use App\Http\Requests\Administrator\CheckRequest;
 use App\Model\Artigo;
+use App\Model\Documento;
 use App\Model\Faq;
 use App\Services\ArtigoService;
 use Illuminate\Http\Request;
@@ -404,7 +405,7 @@ class ArtigoController extends Controller
     }
 
     /**
-     * Search articles
+     * Search articles and documents
      *
      * @param Request $request
      * @return \Illuminate\Http\Response
@@ -416,13 +417,78 @@ class ArtigoController extends Controller
         ]);
 
         try {
-            $articles = Artigo::search($request->search)->get();
-            return view('Administrator.search', compact('articles'))
-                ->with('art', $articles); // Keep original variable name for backward compatibility
+            $searchTerm = $request->search;
+            
+            // Search Articles
+            $articles = Artigo::where(function($q) use ($searchTerm) {
+                    $q->where('alias', 'like', '%' . $searchTerm . '%')
+                      ->orWhere('keyword', 'like', '%' . $searchTerm . '%')
+                      ->orWhereHas('conteudos', function($subQ) use ($searchTerm) {
+                          $subQ->where('titulo', 'like', '%' . $searchTerm . '%')
+                               ->orWhere('texto', 'like', '%' . $searchTerm . '%');
+                      })
+                      ->orWhereHas('tags', function($subQ) use ($searchTerm) {
+                          $subQ->where('name', 'like', '%' . $searchTerm . '%');
+                      });
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
+            
+            // Search Documents
+            $documents = Documento::where(function($q) use ($searchTerm) {
+                    $q->where('nome', 'like', '%' . $searchTerm . '%')
+                      ->orWhere('alias', 'like', '%' . $searchTerm . '%')
+                      ->orWhereHas('conteudos', function($subQ) use ($searchTerm) {
+                          $subQ->where('titulo', 'like', '%' . $searchTerm . '%')
+                               ->orWhere('texto', 'like', '%' . $searchTerm . '%');
+                      })
+                      ->orWhereHas('tags', function($subQ) use ($searchTerm) {
+                          $subQ->where('name', 'like', '%' . $searchTerm . '%');
+                      });
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
+            
+            // Process document URLs (handle JSON format)
+            foreach ($documents as $doc) {
+                if ($doc->url && $this->isJson($doc->url)) {
+                    $files = json_decode($doc->url);
+                    $doc->processedUrl = $files->pt ?? $files->en ?? '';
+                } else {
+                    $doc->processedUrl = $doc->url;
+                }
+            }
+                
+            return view('Administrator.search_results', [
+                'artigos' => $articles,
+                'documentos' => $documents,
+                'searchTerm' => $searchTerm,
+                'art' => $articles // Keep for backward compatibility
+            ]);
         } catch (\Exception $e) {
             Session::flash('error', 'Erro na pesquisa: ' . $e->getMessage());
-            return view('Administrator.search')->with('art', collect());
+            return view('Administrator.search_results', [
+                'artigos' => collect(),
+                'documentos' => collect(),
+                'searchTerm' => $request->search ?? '',
+                'art' => collect()
+            ]);
         }
+    }
+
+    /**
+     * Check if a string is valid JSON
+     *
+     * @param string $string
+     * @return bool
+     */
+    private function isJson($string)
+    {
+        if (!is_string($string)) {
+            return false;
+        }
+        json_decode($string);
+        return (json_last_error() == JSON_ERROR_NONE);
     }
 
     /**
@@ -444,6 +510,42 @@ class ArtigoController extends Controller
             dd('Slugs criados com sucesso para ' . $faqs->count() . ' FAQs');
         } catch (\Exception $e) {
             dd('Erro ao criar slugs: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get all artigos as JSON for dropdowns
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getArtigosJson()
+    {
+        try {
+            $artigos = Artigo::where('ativado', 1)
+                ->with('conteudos:id,contentable_type,contentable_id,titulo,idLanguage')
+                ->orderBy('alias', 'asc')
+                ->select('id', 'alias', 'keyword')
+                ->get()
+                ->map(function($artigo) {
+                    $conteudoPT = $artigo->conteudos->where('idLanguage', 2)->first();
+                    $conteudoEN = $artigo->conteudos->where('idLanguage', 1)->first();
+                    
+                    $tituloPT = $conteudoPT ? $conteudoPT->titulo : '';
+                    $tituloEN = $conteudoEN ? $conteudoEN->titulo : '';
+                    
+                    return [
+                        'id' => $artigo->id,
+                        'alias' => $artigo->alias,
+                        'keyword' => $artigo->keyword ?? '',
+                        'titulo_pt' => $tituloPT,
+                        'titulo_en' => $tituloEN,
+                        'url' => '/artigo/' . $artigo->id
+                    ];
+                });
+            
+            return response()->json($artigos);
+        } catch (\Exception $e) {
+            return response()->json([], 500);
         }
     }
 }
