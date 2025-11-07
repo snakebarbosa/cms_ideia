@@ -165,7 +165,7 @@
                         </a>
                         <ul class="ml-menu">
                             <li>
-                                <a href="{{ URL::to('/') }}/Administrator/Link">Faq</a>
+                                <a href="{{ URL::to('/') }}/Administrator/Link">Link</a>
                             </li>
                             <li>
                                 <a href="{{ URL::to('/') }}/Administrator/Categoria">Categoria</a>
@@ -187,10 +187,10 @@
             <div class="legal">
                 <div class="copyright">
                     &copy;
- 2018 - 2022 <a href="http://www.ideiacv.com" target="_blank">IDEIA, Lda CMS - </a>.
+ 2025 <a href="http://www.ideiacv.com" target="_blank">IDEIA, Lda CMS - </a>.
                 </div>
                 <div class="version">
-                    <b>Version: </b> 1.2
+                    <b>Version: </b> 2.0
                 </div>
             </div>
             <!-- #Footer -->

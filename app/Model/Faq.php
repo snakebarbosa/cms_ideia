@@ -36,21 +36,12 @@ class Faq extends Model
     }
 
     public function imagems(){
-   	    return $this->belongsTo('App\Model\Imagem','idImagem');
+        return $this->belongsTo('App\Model\Imagem','idImagem');
     }
 
     /**
-     * Legacy relationship - kept for backward compatibility
-     */
-    public function contador(){
-        return $this->hasMany('App\Model\Contador','idFaq');
-    }
-
-    /**
-     * Polymorphic relationship - new flexible approach
+     * Get all contadors for this FAQ (polymorphic relationship)
      */
     public function contadores(){
         return $this->morphMany('App\Model\Contador', 'countable');
-    }
-   
-}
+    }}

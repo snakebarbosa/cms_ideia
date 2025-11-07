@@ -24,7 +24,7 @@ class LinkController extends Controller {
 	 */
 	public function index() {
 		try {
-			$links = Link::with(['categorias', 'tags'])->get();
+			$links = Link::with(['categorias', 'tags', 'contadores'])->get();
 			return view('Administrator.Links.link')->withLinks($links);
 			
 		} catch (Exception $e) {

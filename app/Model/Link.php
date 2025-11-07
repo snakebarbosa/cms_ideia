@@ -33,14 +33,7 @@ class Link extends Model
     }
 
     /**
-     * Legacy relationship - kept for backward compatibility
-     */
-    public function contador(){
-        return $this->hasMany('App\Model\Contador','idLink');
-    }
-
-    /**
-     * Polymorphic relationship - new flexible approach
+     * Get all contadors for this link (polymorphic relationship)
      */
     public function contadores(){
         return $this->morphMany('App\Model\Contador', 'countable');

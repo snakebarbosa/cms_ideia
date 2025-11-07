@@ -391,15 +391,15 @@ class ItemController extends Controller {
 				'id'      => $child->id,
 				'titulo'  => $child->titulo,
 				'ativado' => $child->ativado,
+				'childreen' => [], // Initialize empty array
 			];
 
 			if ($level < self::MAX_LEVEL_DEPTH) {
 				$subChildren = $this->buildTreeChildren($idTipo, $child->id, $level + 1);
 				if (!empty($subChildren)) {
 					$node['childreen'] = $subChildren;
-				} else {
-					$node['leaf'] = 1;
 				}
+				$node['leaf'] = empty($subChildren) ? 1 : 0;
 			} else {
 				$node['leaf'] = 1;
 			}

@@ -117,8 +117,8 @@
               {{ $t->name }},
             @endforeach</td>
             <td>
-              {{-- Combined count: legacy + polymorphic --}}
-              {{ Count($item->contador) + Count($item->contadores) }}
+              {{-- Polymorphic contador count --}}
+              {{ $item->contadores->count() }}
               @php
                 $clickCount = $item->contadores()->where('action_type', 'click')->count();
               @endphp
